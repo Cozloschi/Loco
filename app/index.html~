@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="initial-scale=1.0">
+
+    <title>My Location</title>
+    <link rel="stylesheet" href="css/style.css">
+	<script src="http://code.jquery.com/jquery-latest.min.js"
+        type="text/javascript"></script>
+    <script src="js/modernizr.js"></script>
+
+</head>
+<body onload='loaded_page()'> 
+    <div id='modal_background' onclick='modal_box.close()'></div>
+    <div id='modal'> </div>
+	<div id='loading_holder'><img style='margin-top:10px;margin-left:10px'  src='images/loading.gif' /></div>
+    <main class="wrap group">
+        <aside class="sidebar">
+           <div class="my-info">
+               <img src="images/cj.jpg" alt="Chris Johnson" class="portfolio-image">
+               <h1>Chris Johnson</h1>
+               <h2>Experienced UX/UI <br> Designer based in London, UK</h2>
+               <div class="social group">
+                   <a href="#" class="dribble">Dribble</a>
+                   <a href="#" class="twitter">Twitter</a>
+                   <a href="#" class="facebook">Facebook</a>
+                   <a href="#" class="googleplus">Google+</a>
+               </div>
+           </div>
+           <nav class="menus">
+               <ul>
+                   <li class='back'><a href="#"  class="current-menu-item back">Back to menu</a></li>
+                   <li class='edit_profile'><a href="#" >Edit profile</a></li>
+                   <li><a href="#" class="history">History</a></li>
+               </ul>
+
+           </nav>
+		   <section class="menu_contents">
+		     <div style='display:none' class='edit_profile menu_'> 
+				<form class='edit_profile'>
+ 				   <button data='{"action":"avatar_edit"}' onclick='event.preventDefault();modal_box.open("big",this,true);' name='edit_avatar'> Edit Avatar </button>
+                   <input style='margin-top:30px' placeholder='First and second name' name='name' />
+				   <input placeholder='E-mail' name='email' />
+				   <textarea placeholder='Short description' name='description'  maxlength='100'></textarea>
+				   <input style='margin-top:40px' placeholder='Facebook link' name='facebook' />
+				   <input placeholder='Google link' name='google' />
+				   <input placeholder='Twitter link' name='twitter' />
+				   <input placeholder='Dribble link' name='dribble' />
+				   
+				   <button style='margin-top:40px' name='save_user'>Save</button>
+				</form>
+			 
+			 </div>
+		   </section>
+        </aside>
+        <div class="content">
+		    <div class="top-content"> <select name='sel'> <option value='Faget'>Faget</option></select></div>
+            <div class="portfolio-item group first">
+              <div class="portfolio-info">
+                <div class="date">7 Nov 2013</div>
+				<img class="company_logo" src='images/cj.jpg' />
+                <div class="description">
+                  Free PSD template for startups, small businesses and basically for everyone liking good design.
+                </div>
+                <div class="meta">
+					<div class="html5-progress-bar">
+						<div class="progress-bar-wrapper">
+							<progress id="progressbar" value="50" max="100"></progress>
+							<span class="progress-value">0%</span>
+						</div>
+					</div>
+                </div>
+				<ul class='going' data='{"action":"users_list","going":[{"img":"images/cj.jpg","name":"Christ Johnson","description":"Experienced UX/UI deisgner in london, uk"},{"img":"images/cj.jpg","name":"Christ Johnson","description":"Experienced UX/UI deisgner in london, uk"},{"img":"images/cj.jpg","name":"Christ Johnson","description":"Experienced UX/UI deisgner in london, uk"},{"img":"images/cj.jpg","name":"Christ Johnson","description":"Experienced UX/UI deisgner in london, uk"},{"img":"images/cj.jpg","name":"Christ Johnson","description":"Experienced UX/UI deisgner in london, uk"},{"img":"images/cj.jpg","name":"Christ Johnson","description":"Experienced UX/UI deisgner in london, uk"},{"img":"images/cj.jpg","name":"Christ Johnson","description":"Experienced UX/UI deisgner in london, uk"},{"img":"images/cj.jpg","name":"Christ Johnson","description":"Experienced UX/UI deisgner in london, uk"},{"img":"images/cj.jpg","name":"Christ Johnson","description":"Experienced UX/UI deisgner in london, uk"},{"img":"images/cj.jpg","name":"Christ Johnson","description":"Experienced UX/UI deisgner in london, uk"},{"img":"images/cj.jpg","name":"Christ Johnson","description":"Experienced UX/UI deisgner in london, uk"},{"img":"images/cj.jpg","name":"Christ Johnson","description":"Experienced UX/UI deisgner in london, uk"}]}' onclick="modal_box.open('small',this,true)">
+				   <li><img src='images/cj.jpg' /></li>
+				   <li><img src='images/cj.jpg' /></li>
+				   <li><img src='images/cj.jpg' /></li>
+				   <li><img src='images/cj.jpg' /></li>
+				   <li><img src='images/cj.jpg' /></li>
+				   <li><img src='images/cj.jpg' /></li>
+				   <li><img src='images/cj.jpg' /></li>
+				   <li><img src='images/cj.jpg' /></li>
+				   <li><img src='images/cj.jpg' /></li>
+				</ul>
+              </div>
+              <div class="portfolio-image">
+                  <img  data='{"action":"map"}' onclick='modal_box.open("big",this,true)' src="http://maps.googleapis.com/maps/api/staticmap?size=640x300&markers=color:blue|Faget,Timis,aleea%20CFR%20nr%209" alt="Free PSD Templates">
+              </div>
+            </div>
+            <div class="portfolio-item group">
+              <div class="portfolio-info">
+                <div class="date">7 Nov 2013</div>
+                <div class="description">
+                  Free PSD template for startups, small businesses and basically for everyone liking good design.
+                </div>
+                <div class="meta">
+					<div class="html5-progress-bar">
+						<div class="progress-bar-wrapper">
+							<progress id="progressbar" value="0" max="100"></progress>
+							<span class="progress-value">0%</span>
+						</div>
+					</div>
+                </div>
+              </div>
+              <div class="portfolio-image">
+                <img src="images/portfolio/moody-shot.jpg" alt="Moody Shot">
+              </div>
+            </div>
+            <div class="portfolio-item group">
+              <div class="portfolio-info">
+                <div class="date">7 Nov 2013</div>
+                <div class="description">
+                  Free PSD template for startups, small businesses and basically for everyone liking good design.
+                </div>
+                <div class="meta">
+                  <p><strong>Client:</strong> Despreneur</p>
+                  <p><strong>Tags:</strong> Web Design</p>
+                </div>
+              </div>
+              <div class="portfolio-image">
+                <img src="images/portfolio/new-york.jpg" alt="New York">
+              </div>
+            </div>
+            <div class="portfolio-item group loading-wrap" style="display:none">
+              <div class="portfolio-info">
+              </div>
+              <div class="portfolio-image">
+                <div class="loading">
+                  <img src="images/loading.png" alt="Loading" class="rotate">&nbsp;Loading...
+                </div>
+              </div>
+            </div>
+        </div>
+    </main>
+    <script src="http://code.jquery.com/jquery-latest.min.js"
+        type="text/javascript"></script>
+    
+	<script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCebbyNTm5WZJtbnUsBekjznGaDglv2dvs&signed_in=true&callback=initMap"
+        async defer></script>
+	<script type='text/javascript' src="js/notie.js"></script>	
+	
+<script src="js/cropbox.js"></script>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

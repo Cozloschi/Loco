@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Loco Login</title>
+
+        <!-- CSS -->
+        <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Roboto:400,100,300,500">
+        <link rel="stylesheet" href="/static-login/assets/bootstrap/css/bootstrap.min.css">
+        <link rel="stylesheet" href="/static-login/assets/font-awesome/css/font-awesome.min.css">
+		<link rel="stylesheet" href="/static-login/assets/css/form-elements.css">
+        <link rel="stylesheet" href="/static-login/assets/css/style.css">
+
+        <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+        <![endif]-->
+
+        <!-- Favicon and touch icons -->
+        <link rel="shortcut icon" href="/static-login/assets/ico/favicon.png">
+        <link rel="shortcut icon" href="/static-login/assets/ico/favicon.png">
+
+
+        <!-- Javascript -->
+        <script src="/static-login/assets/js/jquery-1.11.1.min.js"></script>
+        <script src="/static-login/assets/bootstrap/js/bootstrap.min.js"></script>
+        <script src="/static-login/assets/js/jquery.backstretch.min.js"></script>
+        <script src="/static-login/assets/js/scripts.js"></script>
+
+        <script type='text/javascript'>
+         $(document).ready(function(){
+		   		
+			//set cross domain cookie set
+			$.ajaxSetup({
+			  crossDomain: true,
+			  xhrFields: {
+				withCredentials: true
+			  }
+			});
+		 
+            var api_link = 'http://localhost:4000/';
+            
+            $(document).on('click','button.btn.signup', function(event){
+              event.preventDefault();
+              
+              var obj = {
+	            action : 'register',
+                name : $('input[name=form-name]').val(),
+                email : $('input[name=form-email]').val(),
+                password : $('input[name=form-password1]').val(),
+                password_re : $('input[name=form-password2]').val(),
+                description : $('textarea[name=form-about-yourself]').val()
+               }
+               console.log(obj);
+              var $saved = $(this);
+	          $saved.text('Loading..');
+
+              for(a in obj){
+                if(typeof obj[a] !== 'undefined'){
+                   if(obj[a].length < 2){
+		             $saved.text('Complete all forms');
+		             return ;
+ 		           }
+                }
+              }
+			  
+			  if(obj.email.search('@') < 0){
+			    $saved.text('Enter valid email');
+				return;
+			  }
+			  
+			  if(obj.password != obj.password_re){
+			    $saved.text('Passwords do not match.');
+				return;
+			  }
+			  
+			  $.post(api_link, obj, function(response){
+			    if(response.status == 'done'){
+				  $saved.text('Redirecting..');
+				  localStorage['logged_user'] = response.id;
+				}else{
+				  if(response.status == 'error')
+				    $saved.text('Error, try again');
+				  else
+				    $saved.text('This email is already taken');
+				}
+			  
+			  },'JSON');
+
+            });
+			
+			$(document).on('click','button.signin', function(event){
+			   event.preventDefault();
+			   
+			   var $saved = $(this);
+			   $saved.text('Loading..');
+			   
+			   var obj = {
+			     action : 'login',
+				 email :  $('input[name=form-email-login]').val(),
+				 password : $('input[name=form-password]').val()
+			   }
+			   
+			   for(var a in obj){
+			     if(obj[a] && obj[a].length < 2){
+				   $saved.text('Complete all forms.');
+				   return ;
+				 }
+			   }
+			   $.get(api_link, obj, function(response){
+			      console.log(response);
+			      if(response.status == 'error'){
+				    $saved.text('Try Again..');
+				  }else{
+				    $saved.text('Redirecting..');
+					localStorage['logged_user'] = response.id;
+					//console.log(response.id);
+					window.location = '/';
+				  }
+			   },'JSON');
+			});
+         });
+
+        </script>
+
+    </head>
+
+    <body>
+
+        <!-- Top content -->
+        <div class="top-content">
+        	
+            <div class="inner-bg">
+                <div class="container">
+                	
+                    <div class="row">
+                        <div class="col-sm-8 col-sm-offset-2 text">
+                            <h1><strong>Loco</strong></h1>
+                            <div class="description">
+                            	<p>
+	                            	Can't find where to drink a coffe, eat, relax or shop? Login/register to our application and we will solve this problem!
+                            	</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-sm-5">
+                        	
+                        	<div class="form-box">
+	                        	<div class="form-top">
+	                        		<div class="form-top-left">
+	                        			<h3>Login</h3>
+	                            		<p>Enter email and password to log on:</p>
+	                        		</div>
+	                        		<div class="form-top-right">
+	                        			<i class="fa fa-lock"></i>
+	                        		</div>
+	                            </div>
+	                            <div class="form-bottom">
+				                    <form role="form" action="" method="post" class="login-form">
+				                    	<div class="form-group">
+				                    		<label class="sr-only" for="form-email-login">Email</label>
+				                        	<input type="text" name="form-email-login" placeholder="Email.." class="form-email-login form-control" id="form-email-login">
+				                        </div>
+				                        <div class="form-group">
+				                        	<label class="sr-only" for="form-password">Password</label>
+				                        	<input type="password" name="form-password" placeholder="Password..." class="form-password form-control" id="form-password">
+				                        </div>
+				                        <button type="submit" class="btn signin">Sign in!</button>
+				                    </form>
+			                    </div>
+		                    </div>
+		                
+		                	
+                        </div>
+                        
+                        <div class="col-sm-1 middle-border"></div>
+                        <div class="col-sm-1"></div>
+                        	
+                        <div class="col-sm-5">
+                        	
+                        	<div class="form-box">
+                        		<div class="form-top">
+	                        		<div class="form-top-left">
+	                        			<h3>Sign up now</h3>
+	                            		<p>Fill in the form below to get instant access:</p>
+	                        		</div>
+	                        		<div class="form-top-right">
+	                        			<i class="fa fa-pencil"></i>
+	                        		</div>
+	                            </div>
+	                            <div class="form-bottom">
+				                    <form role="form" action="" method="post" class="registration-form">
+				                    	<div class="form-group">
+				                    		<label class="sr-only" for="form-name">Name</label>
+				                        	<input type="text" name="form-name" placeholder="Name..." class="form-name form-control" id="form-name">
+				                        </div>
+				                        <div class="form-group">
+				                        	<label class="sr-only" for="form-email">Email</label>
+				                        	<input type="text" name="form-email" placeholder="Email..." class="form-email form-control" id="form-email">
+				                        </div>
+				                        <div class="form-group">
+				                        	<label class="sr-only" for="form-password1">Password</label>
+				                        	<input type="text" name="form-password1" placeholder="Password.." class="form-password1 form-control" id="form-password1">
+				                        </div>
+                                                        <div class="form-group">
+				                        	<label class="sr-only" for="form-password2">Retype Password</label>
+				                        	<input type="text" name="form-password2" placeholder="Retype Password" class="form-password2 form-control" id="form-password2">
+				                        </div>
+				                        <div class="form-group">
+				                        	<label class="sr-only" for="form-about-yourself">About yourself</label>
+				                        	<textarea name="form-about-yourself" placeholder="About yourself..." 
+				                        				class="form-about-yourself form-control" id="form-about-yourself"></textarea>
+				                        </div>
+				                        <button type="submit" class="btn signup">Sign me up!</button>
+				                    </form>
+			                    </div>
+                        	</div>
+                        	
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+            
+        </div>
+
+
+
+        
+        <!--[if lt IE 10]>
+            <script src="assets/js/placeholder.js"></script>
+        <![endif]-->
+
+    </body>
+
+</html>

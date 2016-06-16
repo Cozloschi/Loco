@@ -1,0 +1,5 @@
+http://localhost/company/cozloschi-florin.html
+http://localhost/company/my-first-company.html
+http://localhost/company/mc-donald.html
+http://localhost/company/cafenea.html
+http://localhost/company/sir-colentina.html

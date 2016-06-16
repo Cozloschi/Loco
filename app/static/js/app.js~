@@ -1,0 +1,480 @@
+$(function() {
+
+    //  notie.alert(2, 'Warning<br><b>with</b><br><i>HTML</i><br><u>included.</u>', 2);
+
+    var $edit_profile = $('form.edit_profile');
+	var visibleHeight = $(document).height() - $(window).height();
+    var items;
+	var api_link = 'http://localhost:3000/';
+	var current_location = '';
+	var current_marker = '';
+	
+	var public_text = {
+	  'test' : 'test modal box messages',
+	  'map_exact_location': 'Please double click in the area where you are now.',
+	  'last_map_location' : 'We positioned you where you were last time. Double click to change it.'
+	};
+	
+	var $content = $('div.content');
+	
+	//what city ?
+	if(!localStorage['selected_location'])
+	  localStorage['selected_location'] = '';
+	
+    //map location	
+	if(!localStorage['map_location'])
+	  localStorage['map_location'] = '';
+	
+    storeElements();
+
+    $(window).on('resize', function(e) {
+        updateHeight();
+    });
+
+    $(window).on('scroll', function(e) {
+        loadContent();
+    });
+
+	
+	window.loaded_page = function(){
+	    
+		//get my profile info
+		get({action:'get_user_profile', id:1},function(response){
+		  update_ui.render_user(response);
+		});
+		
+		
+	    //location
+		if(localStorage['selected_location'] == ''){
+		  
+		  //using api
+		  if(navigator.geolocation){
+		  
+			update_ui.add_loading();
+			
+			function geoSuccess(position){
+			  $.getJSON('http://maps.googleapis.com/maps/api/geocode/json?latlng='+position.coords.latitude+','+position.coords.longitude+'&sensor=false',function(response){
+				 var city = response.results[0].adress_components[2].long_name;
+				 update_ui.update_city(city);
+			  });
+			}
+			
+			navigator.geolocation.getCurrentPosition(geoSuccess);
+		  }
+		}
+    }
+	
+	
+	function loadContent() {
+
+        if($(window).scrollTop() >= visibleHeight) {
+
+            $(window).unbind('scroll');
+
+            var loadingWrap = $('.loading-wrap');
+
+            loadingWrap.fadeIn(function() {
+                setTimeout(function() {
+                    loadingWrap.before(items);
+                    loadingWrap.hide(function() {
+                        updateHeight();
+                        storeElements();
+                        $(window).on('scroll', function() { loadContent(); });
+                    });
+                }, 500);
+            });
+
+        }
+    }
+
+    function updateHeight() {
+        visibleHeight = $(document).height() - $(window).height();
+    }
+
+    function storeElements() {
+        items = $('.portfolio-item:lt(3)').clone();
+        //Strip the first class from selection
+        items.removeClass('first');
+    }
+
+    function check_empty_inputs(form, button, exceptions_list, callback){
+	  
+	  var form_val = {};
+	  var call_sent = false;
+	  
+	  form.find('textarea,input').each(function(){
+	    if((exceptions_list.indexOf($(this).attr('name')) < 0) && ( $(this).val() == '' || $(this).val().length < 2 )){
+		  button.text('Complete all forms');
+		  callback({status:false});
+		  call_sent = true;
+		  return false;
+		}
+		else
+		  form_val[$(this).attr('name')] = $(this).val();
+	    
+	  });
+	  
+	  if(!call_sent) callback({status:true, values:form_val});
+	  return;
+	}
+	
+	function post(obj, callback){
+	  $.post(api_link, obj ,function(response){
+         callback(response);
+	  },'JSON');
+	}
+	
+	function get(obj, callback){
+	  $.get(api_link, obj ,function(response){
+		 callback(response);
+	  },'JSON');
+	}
+	
+	//google maps api
+	window.get_directions = function(){
+		
+		  var directionsDisplay = new google.maps.DirectionsRenderer;
+		  var directionsService = new google.maps.DirectionsService;
+		  
+		  //add "click to select your exact location" message
+		  if(localStorage['map_location'] == '')
+		    update_ui.modal_message('map_exact_location');
+		  else{
+		    calculateAndDisplayRoute(directionsService, directionsDisplay, JSON.parse(localStorage['map_location']));
+			update_ui.modal_message('last_map_location');
+		  }
+		  
+		  var map = new google.maps.Map(document.getElementById('map'), {
+			zoom: 14,
+			center: localStorage['map_location'] == '' ? {lat: 45.84852000000001, lng: 22.169502} : JSON.parse(localStorage['map_location'])
+		  });
+		  directionsDisplay.setMap(map);
+          		  
+		  setTimeout(function(){
+		    google.maps.event.trigger(map, 'resize'); map.setCenter({lat: 45.84852000000001, lng: 22.169502});
+		  },1000);
+
+		  google.maps.event.addListener(map, 'dblclick', function(event) {
+		     var latlng = {lat:event.latLng.lat(), lng:event.latLng.lng()};
+		     localStorage['map_location'] = JSON.stringify(latlng);
+             calculateAndDisplayRoute(directionsService, directionsDisplay, latlng);
+          });
+		
+          function calculateAndDisplayRoute(directionsService, directionsDisplay, latlng) {
+			  var selectedMode = 'WALKING';
+			  directionsService.route({
+			  
+				  origin: latlng,  // Height.
+				  destination: {lat: 45.8490067, lng: 22.1663922},  // Ocean Beach.
+				  travelMode: google.maps.TravelMode[selectedMode]
+			  
+			  }, function(response, status) {
+				  if (status == google.maps.DirectionsStatus.OK) {
+					directionsDisplay.setDirections(response);
+				  } else {
+					window.alert('Directions request failed due to ' + status);
+				  }
+			  });
+		  }
+		
+	}
+	
+	// ====================================== ui functions
+	
+	window.modal_box = {
+	   html: function(size, obj){
+	       //modal_box.open('small',{img: 'images/cj.jpg', name:'Christ Johnson' ,description:'Experienced UX/UI deisgner in london, uk'});
+	       switch(obj.action){
+		   
+		     case 'profile':
+			   var social_html = '';
+			   var width = 0;
+			   if(typeof obj.social !== 'undefined')
+			     social_html = update_ui.render_social(obj.social);
+			   
+			   return "<div class='my-info' style='border-bottom:none;color:#182128'> <img class='portfolio-image' src='"+ obj.img +"' /> <h1>"+ obj.name +"</h1> <h2> "+ obj.description +" </h2> <div class='social group' style='width:"+width+"px'>"+ social_html +"</div> </div>";
+			 
+			 break;
+			 
+			 case 'users_list':
+			   var html_li = '';
+			   for(a in obj.going)
+			     if(typeof obj.going[a] !== 'undefined'){
+				   obj.going[a].action = 'profile'; //add html type
+				   html_li += "<li data='"+ JSON.stringify(obj.going[a]) +"' onclick=modal_box.open('small',this,true)><span>" + obj.going[a].date + "</span><img src='" + obj.going[a].img +"'> " + obj.going[a].name + "</li>";
+			     }
+			   return "<ul class='users_list'>"+ html_li +"</ul>";
+			   
+			 break;
+			 
+			 case 'map':
+			   return "<div id='map'><script type='text/javascript'>get_directions();</script> </div>";
+			 break;
+			 
+			 case 'avatar_edit':
+			   return '<div class="imageBox"><div class="thumbBox"></div>' +
+                      '<div class="spinner" style="display: none">Loading...</div>' +
+                      '</div>'+
+                      '<div class="action_imagebox">'+
+					  '<input type="button" style="float:left; width: 250px" value="Click to choose image" onclick="click_file()" />'+
+                      '<input type="file" id="file" style="display:none">' +
+                      '<input type="button" id="btnCrop" value="Crop" style="float: right">'+
+                      '<input type="button" id="btnZoomIn" value="+" style="float: right">'+
+                      '<input type="button" id="btnZoomOut" value="-" style="float: right">'+
+                      '</div>'+
+                      '<div class="cropped"></div>'+
+					  "<script type='text/javascript'>init_cropbox();function click_file(){document.getElementById('file').click();}</script>";
+			 break;
+		   }
+	   },
+	   open: function(size, obj, serialized){
+		 if(serialized){
+		   obj = JSON.parse($(obj).attr('data').toString());
+		 }	     
+
+		 //open background
+		 $('div#modal_background').show();
+		 
+		 var element = $('div#modal').html("<div class='close_modal' onclick='modal_box.close()'>X</div>").append(modal_box.html(size, obj));
+		 var window_size = {'width': $(window).width(), 'height':$(window).height()};
+	     
+		 //calculate element position
+	         var modal_size = size == 'small' ? [320,310] : [550,400];
+		 element.css({
+	           'left': window_size.width/2 - modal_size[0]/2,
+		   'top' : window_size.height/2 - modal_size[1]/2,
+		   'width': modal_size[0],
+		   'height': modal_size[1]		   
+	         }).show();
+		 
+	  },
+	  close: function(){
+		 $('div#modal,div#modal_background,div#loading_holder').hide();
+	  }
+
+	}
+	
+	
+	window.update_ui = {
+	  
+	  render_user: function(json_data){
+	         console.log(json_data.social);
+		 var $info = $('div.my-info');
+		 $info.find('h1').text(json_data.name);
+		 $info.find('h2').text(json_data.description);
+                 $info.find('span.email').text(json_data.email);
+		 if(typeof json_data.social !== 'undefined')
+		   $info.find('.social').html(update_ui.render_social(json_data.social));
+                 else
+                   $info.find('.social').html(' ');
+	     $info.find('img').attr('src', json_data.image);
+		 
+	  },
+	
+	  render_posts: function(list){
+	      var items = $('.portfolio-item:lt(1)').clone();
+		  for(var a in list){
+			
+		    if(typeof list[a] !== 'undefined'){
+			    var saved = $(items).removeClass('first');
+			
+				var $info = $(saved).find('.portfolio-info');
+				
+				//============== create post html
+				
+				//add date
+				$info.find('.date').text(list[a].date);
+				
+				//company logo
+				$info.find('img.company_logo').attr('src',list[a].logo);
+				
+				//description
+				$info.find('div.description').text(list[a].description);
+				
+				//meta progress bar 
+				var $progress_bar = $info.find('.progress-bar-wrapper');
+				$progress_bar.find('#progressbar').val(list[a].progress);
+				$progress_bar.find('.progress-value').text(list[a].progress + '%');  
+				
+				//going
+				var $going = $info.find('ul.going').html('');
+				$going.attr('data',list[a].going);
+				var limit_to_show = 8;
+				var count_limit = 0;
+				var going_unserialized = JSON.parse(list[a].going);
+				for(var b in going_unserialized){
+				  if(typeof(going_userialized[b]) !== 'undefined'){
+				    if(++count_limit <= limit_to_show) break;
+				    $going.append($('<li />').html('<img src="'+going_unserialized[b].img+'" />'));
+				  }
+				}
+				
+				$(saved).find('.portfolio-image').find('img').attr('src',list[a].google_map);
+
+				$content.append(saved);
+			
+			}
+			
+			
+		  }
+		  
+	  },
+	  add_loading : function(){
+        $('div#modal_background,div#loading_holder').show();
+	  },
+	  remove_loading: function(){
+	    $('div#modal_background,div#loading_holder').hide();
+	  },
+	  update_city: function(city){
+	  
+	    $('select[name=sel]').val(city);
+	  
+	  },
+	  modal_message: function(message){
+	    $('#modal_message').remove(); // remove old messages
+	    $('div#modal').append("<div id='modal_message' onclick='this.remove()'>"+ public_text[message] + "</div>");
+	  },
+
+	  render_social : function(json_social){
+	    var social_html = '';
+            var witdh = 0;
+	    for(a in json_social)
+		  if(typeof json_social[a] !== 'undefined'){
+			social_content = "<a style='background-color:#182128;width:26px;height:26px;border-radius:100%' href='" + json_social[a].link + "' class='"+ json_social[a].name.toLowerCase() +"'> "+ json_social.name +" </a>";
+			social_html = typeof social_html == 'undefined' ? social_content : social_html + social_content;
+			width = width + 30; //width of <a> element + margin
+		  }
+		return social_html;
+	  },
+          // button actions
+ 	  edit_profile: function(){
+ 	    var $form = $('form.edit_profile');
+	    var $profile = $('div.my-info');
+
+ 	    $form.find('input[name=name]').val($profile.find('h1').text());
+            $form.find('textarea').val($profile.find('h2').text());
+	    $form.find('input[name=email]').val($profile.find('span.email').text());
+
+	    $profile.find('div.social').find('a').each(function(){
+              $form.find('input[name=' + $(this).attr('class') + ']').val($(this).attr('href'));
+            });
+	    
+	  }
+	}
+	
+	// =============== CROPBOX
+	window.init_cropbox = function(){
+        var options =
+        {
+            thumbBox: '.thumbBox',
+            spinner: '.spinner',
+            imgSrc: 'images/avatar.png'
+        }
+        var cropper = $('.imageBox').cropbox(options);
+        $('#file').on('change', function(){
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                options.imgSrc = e.target.result;
+                cropper = $('.imageBox').cropbox(options);
+            }
+            reader.readAsDataURL(this.files[0]);
+            this.files = [];
+        })
+        $('#btnCrop').on('click', function(){
+            var img = cropper.getDataURL();
+            var $img_holder = $('img.portfolio-image');
+            $img_holder.attr('src',img);
+			
+			post({action:'save_user_image', image:img, id:1},function(response){
+			  console.log(response);
+			});
+			
+			modal_box.close();
+			$('body').scrollTop(0);
+			$img_holder.effect('highlight',400);
+        })
+        $('#btnZoomIn').on('click', function(){
+            cropper.zoomIn();
+        })
+        $('#btnZoomOut').on('click', function(){
+            cropper.zoomOut();
+        })
+     }
+    
+    //================ JQUERY listeners	
+	
+	$(document).on('click','nav.menus ul li',function(){
+	  var menu_class = $(this).attr('class');
+       	  $('section.menu_contents').find('div.' + menu_class).show();
+ 	  
+  	  if(typeof update_ui[menu_class] !== 'undefined')
+             update_ui[menu_class]();
+          
+	  $('nav.menus ul li').each(function(){
+	    if(!$(this).hasClass('back'))
+		  $(this).hide();
+	  });
+	});
+	
+	$(document).on('click','li.back',function(){
+	
+	  $('section.menu_contents').find('div.menu_').each(function(){
+	   $(this).hide();
+	  });
+	  
+	  $('nav.menus').find('ul').find('li').each(function(){
+	    $(this).show();
+	  });
+	});
+	
+
+	$('.menus h3').on('click', function(e) {
+        $(this).next('ul').toggleClass('open');
+        updateHeight();
+        e.preventDefault(); return false;
+    });
+	
+	//user part
+    $(document).on('click','form.edit_profile button[name=save_user]',function(e){
+	
+	  e.preventDefault();
+	  
+	  var $saved = $(this);
+	  
+	  check_empty_inputs($('form.edit_profile'),$saved,['facebook','google','dribble','twitter'],function(full_form){
+	    
+		if(full_form.status === true){
+		  var obj = full_form.values;
+                  var social = {facebook: obj.facebook, google: obj.google, twitter: obj.twitter, dribble:obj.dribble};
+                  var render_list = []; 
+           
+                  $.each(social,function(index,val){
+                    if(val != '')
+ 	              render_list.push({name:index, link:val});
+		  });
+
+		  obj.action = 'save_user_profile';
+		  obj.social = JSON.stringify();
+		  
+		  //for demo
+		  obj.id = 1;
+		  
+		  post(obj,function(response){
+		    if(response.status == 'done'){
+                      $saved.text('Done');
+                      $('.my-info').find('.social').html(update_ui.render_social(render_list)); 
+                    }
+		      else $saved.text('Error');
+		  });
+		
+		}
+		
+	  });
+	  
+	  
+	  
+	});
+
+});
+
+function initMap(){ return; }

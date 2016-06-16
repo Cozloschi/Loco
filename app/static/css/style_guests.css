@@ -1,0 +1,15 @@
+ body{margin:0px;padding:0px;}
+ div.header{color:#ffffff;background-color:#182128;padding:20px;width:100%;float:left;box-sizing:border-box}
+ div.header img{width:10%;border-radius:50%;float:left;margin-right:20px;}
+ div.header span.contact{float:right;width:25%;position:relative;position:relative;top:20px;text-align:right}
+ div.header h2{float:left;width:80%;margin-top:0px;}
+ div.header span.description{float:left;width:80%;display:block;}
+ div.header span.adress{display:none}
+ 
+ div.info{float:left;width:85%;height:auto}
+ 
+ div.map{float:left;height:400px;width:100%;background-color:#e0e0e0}
+ div.map span.adress{float:left;height:40px;line-height:40px;color:#ffffff;background-color:rgba(00,00,00,0.8);display:block;width:100%;box-sizing:border-box;padding-left:10px;position:absolute;z-index:1000}
+ div#map_holder{height:100%;width:100%;float:left;}
+ 
+ div.content{float:left;padding:20px;box-sizing:border-box;width:100%}
